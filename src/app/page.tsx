@@ -1,101 +1,138 @@
-import Image from "next/image";
+"use client";
+import { Calendar } from "@/components/ui/calendar";
+import React, { ReactHTMLElement } from "react";
+import { z } from "zod";
 
-export default function Home() {
+// Define el esquema de validación
+const reservationSchema = z.object({
+  date: z.date().refine((d) => d >= new Date(), {
+    message: "La fecha no puede estar en el pasado",
+  }),
+  name: z.string().min(1, { message: "El nombre es requerido" }),
+  email: z.string().email({ message: "Debe ser un correo válido" }),
+  phone: z.string().regex(/^\d{10,15}$/, {
+    message: "Debe ser un número de teléfono válido (10-15 dígitos)",
+  }),
+});
+
+export default function Page() {
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [name, setName] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [phone, setPhone] = React.useState("");
+  const [errorMessages, setErrorMessages] = React.useState<string[]>([]);
+
+  const handleSubmit = (event: any) => {
+    event.preventDefault();
+    setErrorMessages([]); // Limpiar errores previos
+
+    try {
+      reservationSchema.parse({ date, name, email, phone });
+      // Aquí iría el proceso para confirmar la reserva
+      console.log("Reserva válida:", { date, name, email, phone });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        setErrorMessages(error.errors.map((err) => err.message));
+      }
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <div className="flex items-center justify-center">
+      <Calendar
+        mode="single"
+        selected={date}
+        onSelect={setDate}
+        className="rounded-md border"
+      />
+      <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <label
+          htmlFor="selectedDate"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Fecha seleccionada:
+        </label>
+        <input
+          type="text"
+          id="selectedDate"
+          name="selectedDate"
+          value={date ? date.toLocaleDateString() : ""}
+          readOnly
+          className="mt-1 p-2 border rounded-md w-full"
         />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <div>
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-gray-700"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            Nombre:
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="mt-1 p-2 border rounded-md w-full"
+            required
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Email:
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="mt-1 p-2 border rounded-md w-full"
+            required
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+        </div>
+
+        <div>
+          <label
+            htmlFor="phone"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Teléfono:
+          </label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="mt-1 p-2 border rounded-md w-full"
+            required
           />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        </div>
+
+        <button
+          type="submit"
+          className="mt-4 p-2 bg-blue-500 text-white rounded-md"
         >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Reservar
+        </button>
+      </form>
+
+      {/* Mensajes de error */}
+      {errorMessages.length > 0 && (
+        <div className="mt-4 text-red-600">
+          <ul>
+            {errorMessages.map((msg, index) => (
+              <li key={index}>{msg}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
